@@ -28,7 +28,7 @@
 
 // API ENDPOINTS
 #define MDB_URL_PING        "http://api.mitchdb.net/api/v2/ping"
-#define MDB_URL_BANLIST     "http://api.mitchdb.net/api/v2/bans?api_key=%s"
+#define MDB_URL_BANLIST     "http://api.mitchdb.net/api/v2/bans"
 #define MDB_URL_STATUS      "http://api.mitchdb.net/api/v2/status_update"
 #define MDB_URL_BAN         "http://api.mitchdb.net/api/v2/ban_player"
 #define MDB_URL_UPDATE      "http://api.mitchdb.net/api/v2/check_update?version=%s"
