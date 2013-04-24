@@ -10,4 +10,5 @@ clean:
 	rm -f $(PLUGIN_PATH)/mitchdb.smx
 
 zip: compile
-	zip -r mitchdb.zip addons
+	rm -f mitchdb.zip
+	zip -r mitchdb.zip addons/sourcemod/plugins/mitchdb.smx

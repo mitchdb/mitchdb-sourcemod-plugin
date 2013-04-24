@@ -5,7 +5,7 @@ new bool:statusupdate_running = false;
   //new Handle:statusupdate_profiler = INVALID_HANDLE;
 #endif
 // static counter for how many times we have called this and it was already running
-new already_running_count = 0;
+// new already_running_count = 0;
 
 // This will call the status update
 public Action:UpdateStatusTimer(Handle:timer, any:data) {
@@ -18,7 +18,7 @@ public Action:Command_MDB_StatusUpdate(args) {
   if(statusupdate_running) {
     PrintToServer("[MitchDB] The status update is currently running. Resetting.");
     statusupdate_running = false;
-    already_running_count = 0;
+    // already_running_count = 0;
   }
   PrintToServer("[MitchDB] Forcing the status update to run.");
   SendStatusUpdate();
@@ -181,7 +181,7 @@ stock SendStatusUpdate() {
 // Status update completion
 public StatusUpdateCompleted(Handle:hndl, CURLcode: code, any:statusupdate_form) {
   statusupdate_running = false;
-  already_running_count = 0;
+  //already_running_count = 0;
 
   CloseHandle(statusupdate_form);
 
