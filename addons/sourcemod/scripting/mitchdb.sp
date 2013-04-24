@@ -8,7 +8,7 @@
 #define REQUIRE_EXTENSIONS
 
 #define USE_THREAD    1
-#define USE_PROFILER    1
+#define USE_PROFILER    0
 
 #if USE_PROFILER
   #include <profiler>
@@ -27,12 +27,12 @@
 #define APISECRET_SIZE 33 // 32 + null
 
 // API ENDPOINTS
-#define MDB_URL_PING        "http://mitchdb.herokuapp.com/api/v2/ping"
-#define MDB_URL_BANLIST     "http://mitchdb.herokuapp.com/api/v2/bans?api_key=%s"
-#define MDB_URL_STATUS      "http://mitchdb.herokuapp.com/api/v2/status_update"
-#define MDB_URL_BAN         "http://mitchdb.herokuapp.com/api/v2/ban_player"
-#define MDB_URL_UPDATE      "http://mitchdb.herokuapp.com/api/v2/check_update?version=%s"
-#define MDB_URL_PLAYER_JOIN "http://mitchdb.herokuapp.com/api/v2/player_join"
+#define MDB_URL_PING        "http://api.mitchdb.net/api/v2/ping"
+#define MDB_URL_BANLIST     "http://api.mitchdb.net/api/v2/bans?api_key=%s"
+#define MDB_URL_STATUS      "http://api.mitchdb.net/api/v2/status_update"
+#define MDB_URL_BAN         "http://api.mitchdb.net/api/v2/ban_player"
+#define MDB_URL_UPDATE      "http://api.mitchdb.net/api/v2/check_update?version=%s"
+#define MDB_URL_PLAYER_JOIN "http://api.mitchdb.net/api/v2/player_join"
 
 
 
