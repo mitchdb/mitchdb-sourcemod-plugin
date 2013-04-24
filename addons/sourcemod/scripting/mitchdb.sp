@@ -78,7 +78,7 @@ new bool:has_geoip = false;
 #include <mitchdb/bans.sp>
 #include <mitchdb/banlist.sp>
 #include <mitchdb/player_join.sp>
-#include <mitchdb/check_update.sp>
+//#include <mitchdb/check_update.sp>
 #include <mitchdb/stats.sp>
 #include <mitchdb/ping.sp>
 
@@ -88,9 +88,9 @@ public OnPluginStart() {
   CreateConVar("mitchdb_version", MDBVERSION, "MitchDB", FCVAR_PLUGIN|FCVAR_SPONLY|FCVAR_REPLICATED|FCVAR_NOTIFY);
 
   // Some console variables we need
-  convar_mdb_apikey = CreateConVar("mdb_apikey", "none", "The API key used to communicate with MitchDB");
-  convar_mdb_apisecret = CreateConVar("mdb_apisecret", "none", "The API secret used to communicate with MitchDB");
-  convar_mdb_serverid = CreateConVar("mdb_serverid", "0", "The MitchDB ServerID for this server.");
+  convar_mdb_apikey = CreateConVar("mdb_apikey", "none", "The API key used to communicate with MitchDB", FCVAR_PROTECTED);
+  convar_mdb_apisecret = CreateConVar("mdb_apisecret", "none", "The API secret used to communicate with MitchDB", FCVAR_PROTECTED);
+  convar_mdb_serverid = CreateConVar("mdb_serverid", "0", "The MitchDB ServerID for this server.", FCVAR_PROTECTED);
   convar_mdb_status_interval = CreateConVar("mdb_status_update_interval", "60", "This is the interval in seconds that a status update should be sent to MitchDB. Set to 0 to disable.");
 
   //HookConVarChange(convar_mdb_apikey, OnMDBConVarChanged);
@@ -104,7 +104,7 @@ public OnPluginStart() {
 
   // Misc/utility commands
   RegAdminCmd("mdb_ping", Command_MDB_Ping, ADMFLAG_BAN|ADMFLAG_UNBAN, "This pings the MitchDB service to see if it is responding.");
-  RegServerCmd("mdb_check_update", Command_MDB_CheckUpdate, "Checks to see if there is an available update for the MitchDB plugin.");
+  //RegServerCmd("mdb_check_update", Command_MDB_CheckUpdate, "Checks to see if there is an available update for the MitchDB plugin.");
 
   RegServerCmd("mdb_status_update", Command_MDB_StatusUpdate, "Forces the status updater to run.");
   RegServerCmd("mdb_banlist_update", Command_MDB_BanListUpdate, "Forces the system to update the banlist.");
