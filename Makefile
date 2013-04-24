@@ -1,14 +1,14 @@
-
-SPCOMP=addons/sourcemod/scripting/spcomp
-PLUGIN_PATH=addons/sourcemod/plugins
-SPINCLUDE=addons/sourcemod/scripting
+SOURCEMOD=../sourcemod/sourcemod-1.5.0-hg3832/addons/sourcemod/scripting
+CURL=../sourcemod/curl/scripting/include
+PLUGINS=addons/sourcemod/plugins
+SCRIPTING=addons/sourcemod/scripting
 
 compile: clean
-	$(SPCOMP) $(SPINCLUDE)/mitchdb.sp -o$(PLUGIN_PATH)/mitchdb.smx -i$(SPINCLUDE) -i$(SPINCLUDE)/include -v2
+	$(SOURCEMOD)/spcomp $(SCRIPTING)/mitchdb.sp -o$(PLUGINS)/mitchdb.smx -i$(SCRIPTING) -i$(SOURCEMOD)/include -i$(CURL) -v2
 
 clean:
-	rm -f $(PLUGIN_PATH)/mitchdb.smx
+	rm -f $(PLUGINS)/mitchdb.smx
 
 zip: compile
 	rm -f mitchdb.zip
-	zip -r mitchdb.zip addons/sourcemod/plugins/mitchdb.smx
+	zip -r mitchdb.zip $(PLUGINS)/mitchdb.smx
