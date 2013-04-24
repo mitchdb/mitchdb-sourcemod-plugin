@@ -42,7 +42,7 @@ The commands listed below are generally used by MitchDB API only. They are not m
 * `mitchdb_version` - This console variable will show the current version of the MitchDB plugin.
 
 ## Help & Support
-If you have trouble with this plugin, please contact MitchDB support. If you find bugs/issues with this plugin, feel free to [submit an issue](https://github.com/webdestroya/mitchdb-sourcemod-plugin/issues) to the GitHub issue tracker.
+If you have trouble with this plugin, please contact MitchDB support. If you find bugs/issues with this plugin, feel free to [submit an issue](https://github.com/mitchdb/mitchdb-sourcemod-plugin/issues) to the GitHub issue tracker.
 
 ## Development
 You can use `make compile` to compile the plugin. If you want to create a Zip archive to install on your game server, you can run `make zip` which will create a zip archive inside the `build/` folder.
