@@ -96,6 +96,8 @@ public Action:Command_MDB_Ping(client, args) {
     PrintToConsole(client, "[MitchDB] ServerID is invalid.");
   } else if (responseCode == 500) {
     PrintToConsole(client, "[MitchDB] MitchDB is currently down. Please try this command in a few minutes.");
+  } else if (responseCode == 503) {
+    PrintToConsole(client, "[MitchDB] MitchDB is currently down for maintenance. Please try this command in a few minutes.");
   }
   return Plugin_Handled;
 }
