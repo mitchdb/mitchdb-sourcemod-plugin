@@ -10,6 +10,11 @@ public OnClientPostAdminCheck(clientid) {
     return;
   }
 
+  // is this a bot
+  if(IsFakeClient(clientid) || IsClientSourceTV(clientid) || IsClientReplay(clientid)) {
+    return;
+  }
+
   // lets make sure they really are "new".
   // if they have been on the server for more than 45seconds
   // then they are not new

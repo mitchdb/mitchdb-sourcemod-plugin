@@ -110,7 +110,7 @@ stock SendStatusUpdate() {
   decl String:fieldName[32];
 
   for(new i=1;i<=clientct;i++) {
-    if(IsClientAuthorized(i) && !IsFakeClient(i)) {
+    if(IsClientAuthorized(i) && !IsFakeClient(i) && !IsClientSourceTV(i) && !IsClientReplay(i)) {
 
       GetClientAuthString(i, steamid, sizeof(steamid));
       GetClientName(i, playerName, sizeof(playerName));
