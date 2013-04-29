@@ -3,10 +3,6 @@
 #include <regex>
 #include <cURL>
 
-#undef REQUIRE_EXTENSIONS
-  #include <geoip>
-#define REQUIRE_EXTENSIONS
-
 #define USE_THREAD    1
 #define USE_PROFILER    0
 
@@ -71,8 +67,6 @@ new Handle:g_BanList = INVALID_HANDLE;
 
 new Handle:steamid_regex = INVALID_HANDLE;
 
-new bool:has_geoip = false;
-
 // Extra utilities and things
 #include <mitchdb/utils.sp>
 #include <mitchdb/status.sp>
@@ -132,11 +126,6 @@ public OnPluginStart() {
   }
 }
 
-// After everything has loaded, we should check to see if GeoIP is available
-public OnAllPluginsLoaded() {
-  has_geoip = LibraryExists("GeoIP");
-}
-
 public OnPluginEnd() {
   // when closing the plugin, remove the banlist
   CloseHandle(g_BanList);
@@ -165,21 +154,6 @@ public OnConfigsExecuted() {
   // This will delay the update. in 99% of the cases, this should be fine
   // If you REALLY WANT your banlist sooner, then run mdb_banlist_update
   CreateTimer( MDB_BANLIST_DELAY, RunBanlistUpdate);
-}
-
-
-// We should update the geoip status if the library is removed
-public OnLibraryRemoved(const String:name[]) {
-  if (StrEqual(name, "GeoIP")) {
-    has_geoip = false;
-  }
-}
-
-// We should update the geoip status if the library is added
-public OnLibraryAdded(const String:name[]) {
-  if (StrEqual(name, "GeoIP")) {
-    has_geoip = true;
-  }
 }
 
 // This is called when any of our convars are changed.

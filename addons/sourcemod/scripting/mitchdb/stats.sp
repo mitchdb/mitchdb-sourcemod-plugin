@@ -20,12 +20,6 @@ public Action:Command_MDB_Stats(client, args) {
     PrintToConsole(client, "[MitchDB] Status update state: Running");
   }
 
-  if(has_geoip) {
-    PrintToConsole(client, "[MitchDB] Is GeoIP enabled: Yes");
-  } else {
-    PrintToConsole(client, "[MitchDB] Is GeoIP enabled: No");
-  }
-
   PrintToConsole(client, "[MitchDB] Number of bans in cache: %d", GetArraySize(g_BanList));
   PrintToConsole(client, "[MitchDB] Ban cache memory usage: %d bytes", GetArraySize(g_BanList)*STEAMID_SIZE );
 

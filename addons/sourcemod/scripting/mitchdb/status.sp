@@ -104,7 +104,6 @@ stock SendStatusUpdate() {
 
   decl String:playerIP[16];
   decl String:playerName[100];
-  decl String:playerCountry[4];
   decl String:playerUserid[10];
   decl String:playerTime[20];
 
@@ -142,12 +141,6 @@ stock SendStatusUpdate() {
       Format(fieldName, sizeof(fieldName), "player[%d][userid]", formindex);
       Format(playerUserid, sizeof(playerUserid), "%d", GetClientUserId(i));
       curl_formadd(statusupdate_form, CURLFORM_COPYNAME, fieldName, CURLFORM_COPYCONTENTS, playerUserid, CURLFORM_END);
-
-      // country
-      if(has_geoip && GeoipCode3(playerIP, playerCountry)) {
-        Format(fieldName, sizeof(fieldName), "player[%d][ccode]", formindex);
-        curl_formadd(statusupdate_form, CURLFORM_COPYNAME, fieldName, CURLFORM_COPYCONTENTS, playerCountry, CURLFORM_END);
-      }
 
       formindex++;
     }

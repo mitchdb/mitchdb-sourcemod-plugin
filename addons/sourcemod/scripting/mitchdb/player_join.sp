@@ -42,7 +42,6 @@ public OnClientPostAdminCheck(clientid) {
   decl String:playerSteamId[STEAMID_SIZE];
   decl String:playerIP[16];
   decl String:playerName[45];
-  decl String:playerCountry[4];
   decl String:playerTime[20];
 
   decl String:sig_request[256];
@@ -74,11 +73,6 @@ public OnClientPostAdminCheck(clientid) {
   // name
   GetClientName(clientid, playerName, sizeof(playerName));
   curl_formadd(join_form_handle, CURLFORM_COPYNAME, "name", CURLFORM_COPYCONTENTS, playerName, CURLFORM_END);
-
-  // country
-  if(has_geoip && GeoipCode3(playerIP, playerCountry)) {
-    curl_formadd(join_form_handle, CURLFORM_COPYNAME, "ccode", CURLFORM_COPYCONTENTS, playerCountry, CURLFORM_END);
-  }
 
   // Make the signature request (combine all parts)
   Format(sig_request, sizeof(sig_request), "%s%s%s%s%s%s%s%s", apisecret, apikey, servertime, serverid, playerName, playerSteamId, playerIP, playerTime);
