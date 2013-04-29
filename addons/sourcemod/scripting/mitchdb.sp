@@ -10,7 +10,7 @@
   #include <profiler>
 #endif
 
-#define MDBVERSION "2.0.0"
+#define MDBVERSION "2.0.1-dev"
 
 // Some default values for various things
 #define MDB_BANLIST_DELAY 30.0
