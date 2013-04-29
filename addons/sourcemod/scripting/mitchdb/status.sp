@@ -1,6 +1,7 @@
 // Handle for the status update (that periodically notifies of all users on the system)
 new Handle:timer_statusupdate = INVALID_HANDLE;
 new bool:statusupdate_running = false;
+//new status_concurrent_requests = 0;
 #if USE_PROFILER
   //new Handle:statusupdate_profiler = INVALID_HANDLE;
 #endif
