@@ -12,3 +12,7 @@ clean:
 zip: compile
 	rm -f mitchdb.zip
 	zip -r mitchdb.zip $(PLUGINS)/mitchdb.smx
+
+tag: compile
+	# git tag -a v2.0.0 -m "Version 2.0.0"
+	# git push --tags
