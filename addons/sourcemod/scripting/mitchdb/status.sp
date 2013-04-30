@@ -3,7 +3,7 @@ new Handle:timer_statusupdate = INVALID_HANDLE;
 new bool:statusupdate_running = false;
 //new status_concurrent_requests = 0;
 #if USE_PROFILER
-  //new Handle:statusupdate_profiler = INVALID_HANDLE;
+  new Handle:statusupdate_profiler = INVALID_HANDLE;
 #endif
 // static counter for how many times we have called this and it was already running
 // new already_running_count = 0;
@@ -22,7 +22,7 @@ public Action:Command_MDB_StatusUpdate(args) {
     // already_running_count = 0;
   }
   PrintToServer("[MitchDB] Forcing the status update to run.");
-  SendStatusUpdate();
+  TriggerTimer(timer_statusupdate, true);
   return Plugin_Handled;
 }
 
@@ -60,6 +60,10 @@ stock SendStatusUpdate() {
   // ensure that we only have one running at a time.
   already_running_count = 0;
   */
+
+  if(mdb_verbose) {
+    LogToGame("[MitchDB] Running status update...");
+  }
   
 
   new Handle:curl = curl_easy_init();
@@ -75,13 +79,11 @@ stock SendStatusUpdate() {
   #endif
 
   decl String:apikey[APIKEY_SIZE];
-  decl String:serverid[45];
+  decl String:serverid[11];
   decl String:currentMap[50];
   decl String:sourcemodVersion[50];
   decl String:metamodVersion[50];
-  decl String:curlVersion[256];
-  curl_version(curlVersion, sizeof(curlVersion));
-
+  
   GetCurrentMap(currentMap, sizeof(currentMap));
   GetConVarString(convar_mdb_apikey, apikey, sizeof(apikey));
   GetConVarString(convar_mdb_serverid, serverid, sizeof(serverid));
@@ -98,7 +100,6 @@ stock SendStatusUpdate() {
   curl_formadd(statusupdate_form, CURLFORM_COPYNAME, "version[mitchdb]", CURLFORM_COPYCONTENTS, MDBVERSION, CURLFORM_END);
   curl_formadd(statusupdate_form, CURLFORM_COPYNAME, "version[sourcemod]", CURLFORM_COPYCONTENTS, sourcemodVersion, CURLFORM_END);
   curl_formadd(statusupdate_form, CURLFORM_COPYNAME, "version[metamod]", CURLFORM_COPYCONTENTS, metamodVersion, CURLFORM_END);
-  curl_formadd(statusupdate_form, CURLFORM_COPYNAME, "version[curl]", CURLFORM_COPYCONTENTS, curlVersion, CURLFORM_END);
 
   decl String:steamid[STEAMID_SIZE];
 
@@ -154,28 +155,18 @@ stock SendStatusUpdate() {
   curl_easy_setopt_string(curl, CURLOPT_URL, MDB_URL_STATUS);
   curl_easy_setopt_handle(curl, CURLOPT_HTTPPOST, statusupdate_form);
 
-  #if USE_THREAD
-    curl_easy_perform_thread(curl, StatusUpdateCompleted, statusupdate_form);
-  #else
-    new CURLcode:code = curl_load_opt(curl);
-    if(code != CURLE_OK) {
-      CloseHandle(curl);
-      CloseHandle(statusupdate_form);
-      CurlFailure("status update 1", code);
-      return;
-    }
-    code = curl_easy_perform(curl);
-    CloseHandle(statusupdate_form);
-
-    StatusUpdateCompleted(curl, code, statusupdate_form);
-  #endif
-  
+  // NOTE: This MUST be threaded. If you do not thread this, then the server will lag completely until the request completes
+  curl_easy_perform_thread(curl, StatusUpdateCompleted, statusupdate_form);
 }
 
 // Status update completion
 public StatusUpdateCompleted(Handle:hndl, CURLcode: code, any:statusupdate_form) {
   statusupdate_running = false;
   //already_running_count = 0;
+
+  if(mdb_verbose) {
+    LogToGame("[MitchDB] Status update completed...");
+  }
 
   CloseHandle(statusupdate_form);
 
