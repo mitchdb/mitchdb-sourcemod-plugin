@@ -98,6 +98,8 @@ public Action:Command_MDB_Ping(client, args) {
     PrintToConsole(client, "[MitchDB] MitchDB is currently down. Please try this command in a few minutes.");
   } else if (responseCode == 503) {
     PrintToConsole(client, "[MitchDB] MitchDB is currently down for maintenance. Please try this command in a few minutes.");
+  } else {
+    PrintToConsole(client, "[MitchDB] MitchDB is currently down. System returned HTTP %d.", code);
   }
   return Plugin_Handled;
 }
