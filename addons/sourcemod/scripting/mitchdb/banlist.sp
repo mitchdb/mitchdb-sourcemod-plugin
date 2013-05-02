@@ -73,7 +73,7 @@ stock DownloadBanList() {
 
   CURL_DEFAULT_OPT(curl);
 
-  decl String:apikey[64];
+  decl String:apikey[APIKEY_SIZE];
 
   GetConVarString(convar_mdb_apikey, apikey, sizeof(apikey));
 
