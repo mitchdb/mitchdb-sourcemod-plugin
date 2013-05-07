@@ -15,6 +15,7 @@
 
 // Some default values for various things
 #define MDB_BANLIST_DELAY 30.0
+#define MDB_TIMEOUT 40
 #define MDB_MINIMUM_STATUS_INTERVAL 45.0
 #define MDB_MAXIMUM_NEW_PLAYER_TIME 45.0 // a player must be online for less than this amount of time if we are going to use the "player_join" 
 
