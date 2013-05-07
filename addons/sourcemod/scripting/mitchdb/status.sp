@@ -99,6 +99,7 @@ stock SendStatusUpdate() {
   Format(playerCounts, sizeof(playerCounts), "%d/%d", formindex, GetMaxClients());
 
   Steam_SetHTTPRequestGetOrPostParameter(request, "players", playerCounts);
+
   Steam_SetHTTPRequestNetworkActivityTimeout(request, MDB_TIMEOUT);
   Steam_SendHTTPRequest(request, StatusUpdateCompleted);
 }
