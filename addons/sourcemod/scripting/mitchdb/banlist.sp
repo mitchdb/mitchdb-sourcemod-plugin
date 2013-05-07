@@ -1,7 +1,5 @@
 
 #define MDB_BANLIST_FILE "mitchdb_banlist.dat"
-#define MDB_BANLIST_TEMP_FILE "mitchdb_banlist.dat.tmp"
-new Handle:banlist_file = INVALID_HANDLE;
 
 // This will download the banlist
 public Action:RunBanlistUpdate(Handle:timer, any:data) {
@@ -28,19 +26,8 @@ public Action:Command_MDB_IsBanned(client, args) {
     return Plugin_Handled;
   }
 
-  #if USE_PROFILER
-    new Handle:prof = CreateProfiler();
-    StartProfiling(prof);
-  #endif
-
   // Find them!
   new result = FindStringInArray(g_BanList, steamid);
-
-  #if USE_PROFILER
-    StopProfiling(prof);
-    PrintToServer("[MitchDB] Profiler: SteamID lookup for %s took %f seconds. Result = %d", steamid, GetProfilerTime(prof), result);
-    CloseHandle(prof);
-  #endif
   
   if(result == -1) {
     // not found
@@ -65,68 +52,26 @@ public Action:Command_MDB_BanListUpdate(args) {
 
 /// Download Banlist
 stock DownloadBanList() {
-  new Handle:curl = curl_easy_init();
-  if(curl == INVALID_HANDLE) {
-    CurlError("download banlist");
-    return;
-  }
-
-  CURL_DEFAULT_OPT(curl);
-
   decl String:apikey[APIKEY_SIZE];
 
   GetConVarString(convar_mdb_apikey, apikey, sizeof(apikey));
 
-  // attempt to delete the banfile
-  banlist_file = curl_OpenFile(MDB_BANLIST_TEMP_FILE, "w");
-  curl_easy_setopt_handle(curl, CURLOPT_WRITEDATA, banlist_file);
-
-  new Handle:ban_list_handle = curl_httppost();
-  curl_formadd(ban_list_handle, CURLFORM_COPYNAME, "api_key", CURLFORM_COPYCONTENTS, apikey, CURLFORM_END);
-
-  curl_easy_setopt_string(curl, CURLOPT_URL, MDB_URL_BANLIST);
-  curl_easy_setopt_handle(curl, CURLOPT_HTTPPOST, ban_list_handle);
-
-
-  #if USE_THREAD
-    curl_easy_perform_thread(curl, onCompleteMDBBanlist);
-  #else
-    new CURLcode:code = curl_load_opt(curl);
-    if(code != CURLE_OK) {
-      CloseHandle(curl);
-      return;
-    }
-    code = curl_easy_perform(curl);
-    onCompleteMDBBanlist(curl, code);
-  #endif
+  new HTTPRequestHandle:request = Steam_CreateHTTPRequest(HTTPMethod_POST, MDB_URL_BANLIST);
+  Steam_SetHTTPRequestGetOrPostParameter(request, "api_key", apikey);
+  Steam_SendHTTPRequest(request, onCompleteMDBBanlist);
 }
 
 // Called when the banlist download finishes
-public onCompleteMDBBanlist(Handle:hndl, CURLcode: code, any:data) {
+public onCompleteMDBBanlist(HTTPRequestHandle:request, bool:successful, HTTPStatusCode:code) {
   
-  CloseHandle(banlist_file);
-
-  if(code != CURLE_OK) {
-    CurlFailure("ban list download", code);
-    CloseHandle(hndl);
+  if(!successful || code != HTTPStatusCode_OK) {
+    Steam_ReleaseHTTPRequest(request);
+    LogToGame("[MitchDB] ERROR: There was a problem downloading the banlist. Loading bans from cache instead. (Server returned HTTP %d)", code);
     return;
   }
 
-  // find out the response code from the server
-  new responseCode;
-  curl_easy_getinfo_int(hndl, CURLINFO_RESPONSE_CODE, responseCode);
-  CloseHandle(hndl);
-
-  if(responseCode != 200) {
-    LogToGame("[MitchDB] ERROR: There was a problem downloading the banlist. Loading bans from cache instead. (Server returned HTTP %d)", responseCode);
-
-  } else {
-    // Response was good, so update the file
-    DeleteFile(MDB_BANLIST_FILE);
-
-    // rename the old one
-    RenameFile(MDB_BANLIST_FILE, MDB_BANLIST_TEMP_FILE);
-  }
+  Steam_WriteHTTPResponseBody(request, MDB_BANLIST_FILE);
+  Steam_ReleaseHTTPRequest(request);
 
   // Load the bans
   LoadBanCacheFromFile();
@@ -140,14 +85,8 @@ stock LoadBanCacheFromFile() {
     return;
   }
 
-  #if USE_PROFILER
-    new Handle:prof = CreateProfiler();
-    StartProfiling(prof);
-  #endif
-
   // open our file
   new Handle:banfile = OpenFile(MDB_BANLIST_FILE, "r");
-
 
   decl String:line[STEAMID_SIZE];
 
@@ -164,12 +103,6 @@ stock LoadBanCacheFromFile() {
   CloseHandle(banfile);
 
   LogToGame("[MitchDB] Loaded %d bans from cache.", GetArraySize(g_BanList));
-
-  #if USE_PROFILER
-    StopProfiling(prof);
-    LogToGame("MITCHDB PROFILE: LoadBanCache: %f sec", GetProfilerTime(prof));
-    CloseHandle(prof);
-  #endif
 
   // make sure that any banned players that are ingame are booted
   KickBannedPlayers();

@@ -22,10 +22,6 @@ public OnClientPostAdminCheck(clientid) {
     return;
   }
 
-  #if USE_PROFILER
-    new Handle:prof = CreateProfiler();
-    StartProfiling(prof);
-  #endif
 
   new Handle:curl = curl_easy_init();
   if(curl == INVALID_HANDLE) {
@@ -84,24 +80,7 @@ public OnClientPostAdminCheck(clientid) {
   curl_easy_setopt_string(curl, CURLOPT_URL, MDB_URL_PLAYER_JOIN);
   curl_easy_setopt_handle(curl, CURLOPT_HTTPPOST, join_form_handle);
 
-  #if USE_THREAD
-    curl_easy_perform_thread(curl, PlayerJoinCompleted, join_form_handle);
-  #else
-    new CURLcode:code = curl_load_opt(curl);
-    if(code != CURLE_OK) {
-      CloseHandle(curl);
-      CloseHandle(ban_form_handle);
-      return;
-    }
-    code = curl_easy_perform(curl);
-    PlayerJoinCompleted(curl, code, join_form_handle);
-  #endif
-
-  #if USE_PROFILER
-    StopProfiling(prof);
-    LogToGame("MITCHDB PROFILE: PlayerJoin: %f sec", GetProfilerTime(prof));
-    CloseHandle(prof);
-  #endif
+  curl_easy_perform_thread(curl, PlayerJoinCompleted, join_form_handle);
 }
 
 // Handle the player join response

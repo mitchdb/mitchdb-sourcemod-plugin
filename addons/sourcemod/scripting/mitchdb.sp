@@ -2,6 +2,7 @@
 #include <sourcemod>
 #include <regex>
 #include <cURL>
+#include <steamtools>
 
 #define USE_THREAD    1
 #define USE_PROFILER    0
