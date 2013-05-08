@@ -51,8 +51,7 @@ new CURL_Default_opt[][2] = {
   {_:CURLOPT_NOPROGRESS,1},
   {_:CURLOPT_TIMEOUT,40},
   {_:CURLOPT_CONNECTTIMEOUT,30},
-  {_:CURLOPT_VERBOSE,0},
-  {_:CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_0}
+  {_:CURLOPT_VERBOSE,0}
 };
 
 #define CURL_DEFAULT_OPT(%1) curl_easy_setopt_int_array(%1, CURL_Default_opt, sizeof(CURL_Default_opt))
