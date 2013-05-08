@@ -21,9 +21,6 @@ public Action:Command_MDB_StatusUpdate(args) {
 
 // This sends a status update to MitchDB.
 stock SendStatusUpdate() {
-  if(mdb_verbose) {
-    LogToGame("[MitchDB] Running status update...");
-  }
   statusupdate_running = true;
   
   decl String:apikey[APIKEY_SIZE];
@@ -112,9 +109,5 @@ public StatusUpdateCompleted(HTTPRequestHandle:request, bool:successful, HTTPSta
   if(!successful || code != HTTPStatusCode_OK) {
     LogToGame("[MitchDB] ERROR: There was a problem submitting the status update. (Server returned HTTP %d)", code);
     return;
-  }
-  
-  if(mdb_verbose) {
-    LogToGame("[MitchDB] Status update completed...");
   }
 }
