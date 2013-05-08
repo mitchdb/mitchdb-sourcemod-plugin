@@ -104,7 +104,7 @@ public OnPluginStart() {
   RegServerCmd("writeid", Command_Blocked, "This is not needed any more either");
 
   // Misc/utility commands
-  RegAdminCmd("mdb_ping", Command_MDB_Ping, ADMFLAG_BAN|ADMFLAG_UNBAN, "This pings the MitchDB service to see if it is responding.");
+  RegAdminCmd("mdb_ping", Command_MDB_Ping, ADMFLAG_BAN|ADMFLAG_UNBAN, "This pings the MitchDB service to see if it is responding. (This will cause the server to lag for a few seconds)");
   //RegServerCmd("mdb_check_update", Command_MDB_CheckUpdate, "Checks to see if there is an available update for the MitchDB plugin.");
 
   RegServerCmd("mdb_status_update", Command_MDB_StatusUpdate, "Forces the status updater to run.");
