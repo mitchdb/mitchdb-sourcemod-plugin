@@ -123,16 +123,9 @@ stock SubmitBan(const String:steamid[], time, const String:admin_steamid[]) {
     PushArrayString(g_BanList, steamid);
   }
 
-  new Handle:curl = curl_easy_init();
-  if(curl == INVALID_HANDLE) {
-    CurlError("ban list submission");
-    return;
-  }
-  CURL_DEFAULT_OPT(curl);
-
   decl String:apikey[APIKEY_SIZE];
   decl String:apisecret[APISECRET_SIZE];
-  decl String:serverid[45];
+  decl String:serverid[11];
   decl String:duration[10];
   decl String:servertime[11];
 
@@ -147,56 +140,33 @@ stock SubmitBan(const String:steamid[], time, const String:admin_steamid[]) {
   GetConVarString(convar_mdb_apisecret, apisecret, sizeof(apisecret));
   GetConVarString(convar_mdb_serverid, serverid, sizeof(serverid));
 
-  new Handle:ban_form_handle = curl_httppost();
-  curl_formadd(ban_form_handle, CURLFORM_COPYNAME, "api_key", CURLFORM_COPYCONTENTS, apikey, CURLFORM_END);
-  curl_formadd(ban_form_handle, CURLFORM_COPYNAME, "server_id", CURLFORM_COPYCONTENTS, serverid, CURLFORM_END);
-  curl_formadd(ban_form_handle, CURLFORM_COPYNAME, "admin_steamid", CURLFORM_COPYCONTENTS, admin_steamid, CURLFORM_END);
-  curl_formadd(ban_form_handle, CURLFORM_COPYNAME, "steamid", CURLFORM_COPYCONTENTS, steamid, CURLFORM_END);
-  curl_formadd(ban_form_handle, CURLFORM_COPYNAME, "duration", CURLFORM_COPYCONTENTS, duration, CURLFORM_END);
-  curl_formadd(ban_form_handle, CURLFORM_COPYNAME, "servertime", CURLFORM_COPYCONTENTS, servertime, CURLFORM_END);
+  new HTTPRequestHandle:request = Steam_CreateHTTPRequest(HTTPMethod_POST, MDB_URL_BAN);
+  Steam_SetHTTPRequestGetOrPostParameter(request, "api_key", apikey);
+  Steam_SetHTTPRequestGetOrPostParameter(request, "server_id", serverid);
+  Steam_SetHTTPRequestGetOrPostParameter(request, "admin_steamid", admin_steamid);
+  Steam_SetHTTPRequestGetOrPostParameter(request, "steamid", steamid);
+  Steam_SetHTTPRequestGetOrPostParameter(request, "duration", duration);
+  Steam_SetHTTPRequestGetOrPostParameter(request, "servertime", servertime);
+  
 
   // Make the signature request (combine all parts)
   Format(sig_request, sizeof(sig_request), "%s%s%s%s%s%s%s", apisecret, apikey, servertime, serverid, admin_steamid, steamid, duration);
   curl_hash_string(sig_request, strlen(sig_request), Openssl_Hash_SHA1, signature, sizeof(signature));
 
   // add the signature to the request
-  curl_formadd(ban_form_handle, CURLFORM_COPYNAME, "signature", CURLFORM_COPYCONTENTS, signature, CURLFORM_END);
+  Steam_SetHTTPRequestGetOrPostParameter(request, "signature", signature);
 
-  curl_easy_setopt_string(curl, CURLOPT_URL, MDB_URL_BAN);
-  curl_easy_setopt_handle(curl, CURLOPT_HTTPPOST, ban_form_handle);
-
-  #if USE_THREAD
-    curl_easy_perform_thread(curl, SubmitBanCompleted, ban_form_handle);
-  #else
-    new CURLcode:code = curl_load_opt(curl);
-    if(code != CURLE_OK) {
-      CloseHandle(curl);
-      CloseHandle(ban_form_handle);
-      return;
-    }
-    code = curl_easy_perform(curl);
-    SubmitBanCompleted(curl, code, ban_form_handle);
-  #endif
+  Steam_SetHTTPRequestNetworkActivityTimeout(request, MDB_TIMEOUT);
+  Steam_SendHTTPRequest(request, SubmitBanCompleted);
 }
 
 
 // Handle the ban response
-public SubmitBanCompleted(Handle:hndl, CURLcode: code, any:form_handle) {
-  CloseHandle(form_handle);
-
-  if(code != CURLE_OK) {
-    CurlFailure("Ban Submission", code);
-    CloseHandle(hndl);
-    return;
+public SubmitBanCompleted(HTTPRequestHandle:request, bool:successful, HTTPStatusCode:code) {
+  
+  if(!successful || code != HTTPStatusCode_Created) {
+    LogToGame("[MitchDB] ERROR: There was a problem submitting this ban. (Server returned HTTP %d)", code);
   }
 
-  new responseCode;
-  curl_easy_getinfo_int(hndl, CURLINFO_RESPONSE_CODE, responseCode);
-  CloseHandle(hndl);
-
-  // make sure we get a 201 - CREATED
-  if(responseCode != 201) {
-    LogToGame("[MitchDB] ERROR: There was a problem submitting this ban. (Server returned HTTP %d)", responseCode);
-  } 
-
+  Steam_ReleaseHTTPRequest(request);
 }
