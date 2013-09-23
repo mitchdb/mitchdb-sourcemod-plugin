@@ -1,9 +1,12 @@
 // Handle for the status update (that periodically notifies of all users on the system)
 new Handle:timer_statusupdate = INVALID_HANDLE;
 new bool:statusupdate_running = false;
+<<<<<<< HEAD
 //new status_concurrent_requests = 0;
 // static counter for how many times we have called this and it was already running
 // new already_running_count = 0;
+=======
+>>>>>>> 903ac840e58441ba53272e6e85edfd834bca7c0a
 
 // This will call the status update
 public Action:UpdateStatusTimer(Handle:timer, any:data) {
@@ -16,7 +19,6 @@ public Action:Command_MDB_StatusUpdate(args) {
   if(statusupdate_running) {
     PrintToServer("[MitchDB] The status update is currently running. Resetting.");
     statusupdate_running = false;
-    // already_running_count = 0;
   }
   PrintToServer("[MitchDB] Forcing the status update to run.");
   TriggerTimer(timer_statusupdate, true);
@@ -25,34 +27,8 @@ public Action:Command_MDB_StatusUpdate(args) {
 
 // This sends a status update to MitchDB.
 stock SendStatusUpdate() {
-  /*
-  // if the update is already running, then bail out.
-  if(statusupdate_running) {
-    LogToGame("[MitchDB] Error: Status update task is already running.");
-
-    // if we have failed a bunch, we should reset the counter
-    if(already_running_count > 0) {
-      LogToGame("[MitchDB] Error: Status Update process attempt %d.", already_running_count);
-
-      // It has failed more than 5 times. at ths point, lets reset the counter
-      // and have it try again.
-      if(already_running_count > 4) {
-        LogToGame("[MitchDB] Error: Status Update process has failed %d times. Resetting status.", already_running_count);
-        already_running_count = 0;
-        statusupdate_running = false;
-      } else {
-        // ok, we havent failed 5 times, so update the fail count
-        already_running_count++;
-      }
-    } else {
-      already_running_count++;
-    }
-    
-    return;
-  }
-
-  // set the status of the updater
   statusupdate_running = true;
+<<<<<<< HEAD
 
   // ensure that we only have one running at a time.
   already_running_count = 0;
@@ -62,6 +38,9 @@ stock SendStatusUpdate() {
     LogToGame("[MitchDB] Running status update...");
   }
 
+=======
+  
+>>>>>>> 903ac840e58441ba53272e6e85edfd834bca7c0a
   decl String:apikey[APIKEY_SIZE];
   decl String:serverid[11];
   decl String:currentMap[50];
@@ -77,7 +56,10 @@ stock SendStatusUpdate() {
   new clientct = GetMaxClients();
   new formindex = 0;
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 903ac840e58441ba53272e6e85edfd834bca7c0a
   new HTTPRequestHandle:request = Steam_CreateHTTPRequest(HTTPMethod_POST, MDB_URL_STATUS);
   Steam_SetHTTPRequestGetOrPostParameter(request, "api_key", apikey);
   Steam_SetHTTPRequestGetOrPostParameter(request, "server_id", serverid);
@@ -137,6 +119,10 @@ stock SendStatusUpdate() {
 
   Steam_SetHTTPRequestGetOrPostParameter(request, "players", playerCounts);
 
+<<<<<<< HEAD
+=======
+  Steam_SetHTTPRequestNetworkActivityTimeout(request, MDB_TIMEOUT);
+>>>>>>> 903ac840e58441ba53272e6e85edfd834bca7c0a
   Steam_SendHTTPRequest(request, StatusUpdateCompleted);
 }
 
@@ -144,6 +130,7 @@ stock SendStatusUpdate() {
 public StatusUpdateCompleted(HTTPRequestHandle:request, bool:successful, HTTPStatusCode:code) {
   statusupdate_running = false;
   Steam_ReleaseHTTPRequest(request);
+<<<<<<< HEAD
   //already_running_count = 0;
 
   if(mdb_verbose) {
@@ -158,4 +145,11 @@ public StatusUpdateCompleted(HTTPRequestHandle:request, bool:successful, HTTPSta
   if(code != HTTPStatusCode_OK) {
     LogToGame("[MitchDB] ERROR: There was a problem submitting the status update. (Server returned HTTP %d)", code);
   }
+=======
+
+  if(!successful || code != HTTPStatusCode_OK) {
+    LogToGame("[MitchDB] ERROR: There was a problem submitting the status update. (Server returned HTTP %d)", code);
+    return;
+  }
+>>>>>>> 903ac840e58441ba53272e6e85edfd834bca7c0a
 }

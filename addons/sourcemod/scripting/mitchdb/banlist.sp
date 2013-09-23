@@ -88,17 +88,7 @@ stock DownloadBanList() {
   curl_easy_setopt_handle(curl, CURLOPT_HTTPPOST, ban_list_handle);
 
 
-  #if USE_THREAD
-    curl_easy_perform_thread(curl, onCompleteMDBBanlist);
-  #else
-    new CURLcode:code = curl_load_opt(curl);
-    if(code != CURLE_OK) {
-      CloseHandle(curl);
-      return;
-    }
-    code = curl_easy_perform(curl);
-    onCompleteMDBBanlist(curl, code);
-  #endif
+  curl_easy_perform_thread(curl, onCompleteMDBBanlist);
 }
 
 // Called when the banlist download finishes

@@ -11,10 +11,15 @@
   #include <profiler>
 #endif
 
+<<<<<<< HEAD
 #define MDBVERSION "2.0.2-dev"
+=======
+#define MDBVERSION "2.1.0"
+>>>>>>> 903ac840e58441ba53272e6e85edfd834bca7c0a
 
 // Some default values for various things
 #define MDB_BANLIST_DELAY 30.0
+#define MDB_TIMEOUT 40
 #define MDB_MINIMUM_STATUS_INTERVAL 45.0
 #define MDB_MAXIMUM_NEW_PLAYER_TIME 45.0 // a player must be online for less than this amount of time if we are going to use the "player_join" 
 
@@ -50,8 +55,7 @@ new CURL_Default_opt[][2] = {
   {_:CURLOPT_NOPROGRESS,1},
   {_:CURLOPT_TIMEOUT,40},
   {_:CURLOPT_CONNECTTIMEOUT,30},
-  {_:CURLOPT_VERBOSE,0},
-  {_:CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_0}
+  {_:CURLOPT_VERBOSE,0}
 };
 
 #define CURL_DEFAULT_OPT(%1) curl_easy_setopt_int_array(%1, CURL_Default_opt, sizeof(CURL_Default_opt))
@@ -61,12 +65,9 @@ new Handle:convar_mdb_apikey = INVALID_HANDLE; // ApiKey Console Variable
 new Handle:convar_mdb_apisecret = INVALID_HANDLE; // Api Secret Console Variable
 new Handle:convar_mdb_serverid = INVALID_HANDLE; // ServerID Console Variable
 new Handle:convar_mdb_status_interval = INVALID_HANDLE; // StatusUpdate interval Console Variable
-new Handle:convar_mdb_verbose = INVALID_HANDLE;
 
 // Global Banlist
 new Handle:g_BanList = INVALID_HANDLE;
-
-new bool:mdb_verbose = false;
 
 new Handle:steamid_regex = INVALID_HANDLE;
 
@@ -90,20 +91,15 @@ public OnPluginStart() {
   convar_mdb_apisecret = CreateConVar("mdb_apisecret", "none", "The API secret used to communicate with MitchDB", FCVAR_PROTECTED);
   convar_mdb_serverid = CreateConVar("mdb_serverid", "0", "The MitchDB ServerID for this server.", FCVAR_PROTECTED);
   convar_mdb_status_interval = CreateConVar("mdb_status_update_interval", "60", "This is the interval in seconds that a status update should be sent to MitchDB. Set to 0 to disable.");
-  convar_mdb_verbose = CreateConVar("mdb_verbose", "0", "This determines if MitchDB should be verbose. 1=on, 0=off");
-
-  //HookConVarChange(convar_mdb_apikey, OnMDBConVarChanged);
-  //HookConVarChange(convar_mdb_apisecret, OnMDBConVarChanged);
-  //HookConVarChange(convar_mdb_serverid, OnMDBConVarChanged);
+  
   HookConVarChange(convar_mdb_status_interval, OnMDBConVarChanged);
-  HookConVarChange(convar_mdb_verbose, OnMDBConVarChanged);
 
   // Hook the Bans
   RegServerCmd("banid", Command_Banid, "Hooked in order to capture RCON bans.");
   RegServerCmd("writeid", Command_Blocked, "This is not needed any more either");
 
   // Misc/utility commands
-  RegAdminCmd("mdb_ping", Command_MDB_Ping, ADMFLAG_BAN|ADMFLAG_UNBAN, "This pings the MitchDB service to see if it is responding.");
+  RegAdminCmd("mdb_ping", Command_MDB_Ping, ADMFLAG_BAN|ADMFLAG_UNBAN, "This pings the MitchDB service to see if it is responding. (This will cause the server to lag for a few seconds)");
   //RegServerCmd("mdb_check_update", Command_MDB_CheckUpdate, "Checks to see if there is an available update for the MitchDB plugin.");
 
   RegServerCmd("mdb_status_update", Command_MDB_StatusUpdate, "Forces the status updater to run.");
@@ -179,11 +175,6 @@ public OnMDBConVarChanged(Handle:convar, const String:oldVal[], const String:new
       timer_statusupdate = CreateTimer( statusInterval, UpdateStatusTimer, 0, TIMER_REPEAT);
     }
 
-    return;
-  }
-
-  if(convar == convar_mdb_verbose) {
-    mdb_verbose = GetConVarBool(convar);
     return;
   }
 
