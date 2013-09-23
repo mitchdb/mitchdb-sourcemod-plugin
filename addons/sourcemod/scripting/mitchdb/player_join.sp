@@ -23,7 +23,6 @@ public OnClientPostAdminCheck(clientid) {
   }
 
   decl String:apikey[APIKEY_SIZE];
-  decl String:apisecret[APISECRET_SIZE];
   decl String:serverid[20];
   decl String:servertime[11];
 
@@ -32,13 +31,9 @@ public OnClientPostAdminCheck(clientid) {
   decl String:playerName[45];
   decl String:playerTime[20];
 
-  decl String:sig_request[256];
-  decl String:signature[128];
-
 
   Format(servertime, sizeof(servertime), "%d", GetTime());
   GetConVarString(convar_mdb_apikey, apikey, sizeof(apikey));
-  GetConVarString(convar_mdb_apisecret, apisecret, sizeof(apisecret));
   GetConVarString(convar_mdb_serverid, serverid, sizeof(serverid));
 
   new HTTPRequestHandle:request = Steam_CreateHTTPRequest(HTTPMethod_POST, MDB_URL_PLAYER_JOIN);
@@ -62,12 +57,6 @@ public OnClientPostAdminCheck(clientid) {
   GetClientName(clientid, playerName, sizeof(playerName));
   Steam_SetHTTPRequestGetOrPostParameter(request, "name", playerName);
 
-  // Make the signature request (combine all parts)
-  Format(sig_request, sizeof(sig_request), "%s%s%s%s%s%s%s%s", apisecret, apikey, servertime, serverid, playerName, playerSteamId, playerIP, playerTime);
-  curl_hash_string(sig_request, strlen(sig_request), Openssl_Hash_SHA1, signature, sizeof(signature));
-
-  // add the signature to the request
-  Steam_SetHTTPRequestGetOrPostParameter(request, "signature", signature);
   Steam_SetHTTPRequestNetworkActivityTimeout(request, MDB_TIMEOUT);
 
   Steam_SendHTTPRequest(request, PlayerJoinCompleted);

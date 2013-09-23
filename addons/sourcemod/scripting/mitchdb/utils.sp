@@ -43,8 +43,6 @@ stock KickBannedPlayers() {
   }
 }
 
-
-
 // Is this steamid in our banlist
 stock bool:IsSteamIdBanned(const String:steamid[]) {
   if(FindStringInArray(g_BanList, steamid) == -1) {
@@ -62,21 +60,6 @@ stock bool:IsStringSteamId(const String:steamid[]) {
     return false;
   }
 }
-
-stock CurlError(const String:info[]) {
-  LogToGame("[MitchDB] ERROR: Unable to create cURL resource. (%s)", info);
-}
-
-stock CurlFailure(const String:info[], CURLcode:code) {
-  if(code == CURLE_COULDNT_RESOLVE_HOST) {
-    LogToGame("[MitchDB] ERROR: Network error contacting API. [unable to resolve host] (%s)", info);
-  } else if(code==CURLE_OPERATION_TIMEDOUT) {
-    LogToGame("[MitchDB] ERROR: Network error contacting API. [timed out] (%s)", info);
-  } else {
-    LogToGame("[MitchDB] ERROR: Network error contacting API. [curlcode=%d] (%s)", code, info);
-  }
-}
-
 
 // Some actions we just want to ignore
 public Action:Command_Blocked(args) {

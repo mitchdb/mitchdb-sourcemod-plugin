@@ -6,7 +6,6 @@ This plugin interfaces to the MitchDB service and will report player information
 ## Requirements
 * A [MitchDB](http://www.mitchdb.com/) account with at least one server added.
 * [SourceMod](http://www.sourcemod.net/)
-* [sourcemod-curl-extension](http://code.google.com/p/sourcemod-curl-extension/)
 * [steamtools](http://forums.alliedmods.net/showthread.php?t=129763)
 
 

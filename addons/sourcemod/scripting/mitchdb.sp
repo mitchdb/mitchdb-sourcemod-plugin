@@ -1,17 +1,15 @@
 #pragma semicolon 1
 #include <sourcemod>
 #include <regex>
-#include <cURL>
 #include <steamtools>
 
-#define USE_THREAD    1
 #define USE_PROFILER    0
 
 #if USE_PROFILER
   #include <profiler>
 #endif
 
-#define MDBVERSION "2.1.0"
+#define MDBVERSION "3.0.0"
 
 // Some default values for various things
 #define MDB_BANLIST_DELAY 30.0
@@ -43,18 +41,6 @@ public Plugin:myinfo =
   version = MDBVERSION,
   url = "http://www.mitchdb.com/"
 };
-
-new CURL_Default_opt[][2] = {
-#if USE_THREAD
-  {_:CURLOPT_NOSIGNAL,1},
-#endif
-  {_:CURLOPT_NOPROGRESS,1},
-  {_:CURLOPT_TIMEOUT,40},
-  {_:CURLOPT_CONNECTTIMEOUT,30},
-  {_:CURLOPT_VERBOSE,0}
-};
-
-#define CURL_DEFAULT_OPT(%1) curl_easy_setopt_int_array(%1, CURL_Default_opt, sizeof(CURL_Default_opt))
 
 
 new Handle:convar_mdb_apikey = INVALID_HANDLE; // ApiKey Console Variable

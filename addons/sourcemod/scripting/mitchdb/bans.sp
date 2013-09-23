@@ -124,20 +124,15 @@ stock SubmitBan(const String:steamid[], time, const String:admin_steamid[]) {
   }
 
   decl String:apikey[APIKEY_SIZE];
-  decl String:apisecret[APISECRET_SIZE];
   decl String:serverid[11];
   decl String:duration[10];
   decl String:servertime[11];
-
-  decl String:sig_request[256];
-  decl String:signature[128];
 
   Format(duration, sizeof(duration), "%d", time);
 
   Format(servertime, sizeof(servertime), "%d", GetTime());
 
   GetConVarString(convar_mdb_apikey, apikey, sizeof(apikey));
-  GetConVarString(convar_mdb_apisecret, apisecret, sizeof(apisecret));
   GetConVarString(convar_mdb_serverid, serverid, sizeof(serverid));
 
   new HTTPRequestHandle:request = Steam_CreateHTTPRequest(HTTPMethod_POST, MDB_URL_BAN);
@@ -148,14 +143,6 @@ stock SubmitBan(const String:steamid[], time, const String:admin_steamid[]) {
   Steam_SetHTTPRequestGetOrPostParameter(request, "duration", duration);
   Steam_SetHTTPRequestGetOrPostParameter(request, "servertime", servertime);
   
-
-  // Make the signature request (combine all parts)
-  Format(sig_request, sizeof(sig_request), "%s%s%s%s%s%s%s", apisecret, apikey, servertime, serverid, admin_steamid, steamid, duration);
-  curl_hash_string(sig_request, strlen(sig_request), Openssl_Hash_SHA1, signature, sizeof(signature));
-
-  // add the signature to the request
-  Steam_SetHTTPRequestGetOrPostParameter(request, "signature", signature);
-
   Steam_SetHTTPRequestNetworkActivityTimeout(request, MDB_TIMEOUT);
   Steam_SendHTTPRequest(request, SubmitBanCompleted);
 }

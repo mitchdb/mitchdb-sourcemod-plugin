@@ -1,7 +1,6 @@
 
-#define MDB_BANLIST_FILE "mitchdb_banlist.dat"
-#define MDB_BANLIST_TEMP_FILE "mitchdb_banlist.dat.tmp"
-new Handle:banlist_file = INVALID_HANDLE;
+#define MDB_BANLIST_FILE "data/mitchdb_banlist.dat"
+#define MDB_BANLIST_TEMP_FILE "data/mitchdb_banlist.dat.tmp"
 
 // This will download the banlist
 public Action:RunBanlistUpdate(Handle:timer, any:data) {
@@ -65,52 +64,47 @@ public Action:Command_MDB_BanListUpdate(args) {
 
 /// Download Banlist
 stock DownloadBanList() {
-  new Handle:curl = curl_easy_init();
-  if(curl == INVALID_HANDLE) {
-    CurlError("download banlist");
-    return;
-  }
-
-  CURL_DEFAULT_OPT(curl);
+  
+  // clear out the existing temp banlist file
+  decl String:path[PLATFORM_MAX_PATH];
+  BuildPath(Path_SM, path, sizeof(path), MDB_BANLIST_TEMP_FILE);
+  DeleteFile(path);
 
   decl String:apikey[APIKEY_SIZE];
 
   GetConVarString(convar_mdb_apikey, apikey, sizeof(apikey));
 
-  // attempt to delete the banfile
-  banlist_file = curl_OpenFile(MDB_BANLIST_TEMP_FILE, "w");
-  curl_easy_setopt_handle(curl, CURLOPT_WRITEDATA, banlist_file);
+  new HTTPRequestHandle:request = Steam_CreateHTTPRequest(HTTPMethod_POST, MDB_URL_BANLIST);
+  Steam_SetHTTPRequestGetOrPostParameter(request, "api_key", apikey);
 
-  new Handle:ban_list_handle = curl_httppost();
-  curl_formadd(ban_list_handle, CURLFORM_COPYNAME, "api_key", CURLFORM_COPYCONTENTS, apikey, CURLFORM_END);
+  Steam_SetHTTPRequestNetworkActivityTimeout(request, MDB_TIMEOUT);
 
-  curl_easy_setopt_string(curl, CURLOPT_URL, MDB_URL_BANLIST);
-  curl_easy_setopt_handle(curl, CURLOPT_HTTPPOST, ban_list_handle);
-
-
-  curl_easy_perform_thread(curl, onCompleteMDBBanlist);
+  Steam_SendHTTPRequest(request, onCompleteMDBBanlist);
 }
 
 // Called when the banlist download finishes
-public onCompleteMDBBanlist(Handle:hndl, CURLcode: code, any:data) {
-  
-  CloseHandle(banlist_file);
-
-  if(code != CURLE_OK) {
-    CurlFailure("ban list download", code);
-    CloseHandle(hndl);
-    return;
+public onCompleteMDBBanlist(HTTPRequestHandle:request, bool:successful, HTTPStatusCode:code) {
+  if(!successful || code != HTTPStatusCode_OK) {
+    LogToGame("[MitchDB] ERROR: There was a problem retreiving the banlist. (Server returned HTTP %d)", code);
   }
+  
 
-  // find out the response code from the server
-  new responseCode;
-  curl_easy_getinfo_int(hndl, CURLINFO_RESPONSE_CODE, responseCode);
-  CloseHandle(hndl);
+  // write the local banlist
+  decl String:temp_path[PLATFORM_MAX_PATH];
+  BuildPath(Path_SM, temp_path, sizeof(temp_path), MDB_BANLIST_TEMP_FILE);
+  Steam_WriteHTTPResponseBody(request, temp_path);
 
-  if(responseCode != 200) {
-    LogToGame("[MitchDB] ERROR: There was a problem downloading the banlist. Loading bans from cache instead. (Server returned HTTP %d)", responseCode);
+  // release the request
+  Steam_ReleaseHTTPRequest(request);
+
+  if(code != HTTPStatusCode_OK) {
+    LogToGame("[MitchDB] ERROR: There was a problem downloading the banlist. Loading bans from cache instead. (Server returned HTTP %d)", code);
 
   } else {
+
+    decl String:new_path[PLATFORM_MAX_PATH];
+    BuildPath(Path_SM, new_path, sizeof(new_path), MDB_BANLIST_FILE);
+
     // Response was good, so update the file
     DeleteFile(MDB_BANLIST_FILE);
 
@@ -125,7 +119,10 @@ public onCompleteMDBBanlist(Handle:hndl, CURLcode: code, any:data) {
 // This reads the banlist from a file, and loads it into memory
 stock LoadBanCacheFromFile() {
 
-  if(!FileExists(MDB_BANLIST_FILE)) {
+  decl String:new_path[PLATFORM_MAX_PATH];
+  BuildPath(Path_SM, new_path, sizeof(new_path), MDB_BANLIST_FILE);
+
+  if(!FileExists(new_path)) {
     LogToGame("[MitchDB] ERROR: Could not load ban cache from filesystem.");
     return;
   }
@@ -136,7 +133,7 @@ stock LoadBanCacheFromFile() {
   #endif
 
   // open our file
-  new Handle:banfile = OpenFile(MDB_BANLIST_FILE, "r");
+  new Handle:banfile = OpenFile(new_path, "r");
 
 
   decl String:line[STEAMID_SIZE];
