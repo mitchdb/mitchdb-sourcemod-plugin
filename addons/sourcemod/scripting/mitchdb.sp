@@ -9,7 +9,7 @@
   #include <profiler>
 #endif
 
-#define MDBVERSION "3.0.0"
+#define MDBVERSION "2.1.0"
 
 // Some default values for various things
 #define MDB_BANLIST_DELAY 30.0
@@ -27,7 +27,7 @@
 #define MDB_URL_BANLIST     "http://api.mitchdb.net/api/v2/bans"
 #define MDB_URL_STATUS      "http://api.mitchdb.net/api/v2/status_update"
 #define MDB_URL_BAN         "http://api.mitchdb.net/api/v2/ban_player"
-#define MDB_URL_UPDATE      "http://api.mitchdb.net/api/v2/check_update?version=%s"
+// #define MDB_URL_UPDATE      "http://api.mitchdb.net/api/v2/check_update?version=%s"
 #define MDB_URL_PLAYER_JOIN "http://api.mitchdb.net/api/v2/player_join"
 
 
@@ -44,7 +44,7 @@ public Plugin:myinfo =
 
 
 new Handle:convar_mdb_apikey = INVALID_HANDLE; // ApiKey Console Variable
-new Handle:convar_mdb_apisecret = INVALID_HANDLE; // Api Secret Console Variable
+// new Handle:convar_mdb_apisecret = INVALID_HANDLE; // Api Secret Console Variable
 new Handle:convar_mdb_serverid = INVALID_HANDLE; // ServerID Console Variable
 new Handle:convar_mdb_status_interval = INVALID_HANDLE; // StatusUpdate interval Console Variable
 
@@ -70,7 +70,7 @@ public OnPluginStart() {
 
   // Some console variables we need
   convar_mdb_apikey = CreateConVar("mdb_apikey", "none", "The API key used to communicate with MitchDB", FCVAR_PROTECTED);
-  convar_mdb_apisecret = CreateConVar("mdb_apisecret", "none", "The API secret used to communicate with MitchDB", FCVAR_PROTECTED);
+  //convar_mdb_apisecret = CreateConVar("mdb_apisecret", "none", "The API secret used to communicate with MitchDB", FCVAR_PROTECTED);
   convar_mdb_serverid = CreateConVar("mdb_serverid", "0", "The MitchDB ServerID for this server.", FCVAR_PROTECTED);
   convar_mdb_status_interval = CreateConVar("mdb_status_update_interval", "60", "This is the interval in seconds that a status update should be sent to MitchDB. Set to 0 to disable.");
   
