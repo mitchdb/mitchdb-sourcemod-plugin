@@ -2,9 +2,6 @@
 new Handle:timer_statusupdate = INVALID_HANDLE;
 new bool:statusupdate_running = false;
 //new status_concurrent_requests = 0;
-#if USE_PROFILER
-  new Handle:statusupdate_profiler = INVALID_HANDLE;
-#endif
 // static counter for how many times we have called this and it was already running
 // new already_running_count = 0;
 
@@ -64,19 +61,6 @@ stock SendStatusUpdate() {
   if(mdb_verbose) {
     LogToGame("[MitchDB] Running status update...");
   }
-  
-
-  new Handle:curl = curl_easy_init();
-  if(curl == INVALID_HANDLE) {
-    CurlError("status update");
-    return;
-  }
-  CURL_DEFAULT_OPT(curl);
-
-  #if USE_PROFILER
-    new Handle:statusupdate_profiler = CreateProfiler();
-    StartProfiling(statusupdate_profiler);
-  #endif
 
   decl String:apikey[APIKEY_SIZE];
   decl String:serverid[11];
@@ -93,13 +77,14 @@ stock SendStatusUpdate() {
   new clientct = GetMaxClients();
   new formindex = 0;
 
-  new Handle:statusupdate_form = curl_httppost();
-  curl_formadd(statusupdate_form, CURLFORM_COPYNAME, "api_key", CURLFORM_COPYCONTENTS, apikey, CURLFORM_END);
-  curl_formadd(statusupdate_form, CURLFORM_COPYNAME, "server_id", CURLFORM_COPYCONTENTS, serverid, CURLFORM_END);
-  curl_formadd(statusupdate_form, CURLFORM_COPYNAME, "map", CURLFORM_COPYCONTENTS, currentMap, CURLFORM_END);
-  curl_formadd(statusupdate_form, CURLFORM_COPYNAME, "version[mitchdb]", CURLFORM_COPYCONTENTS, MDBVERSION, CURLFORM_END);
-  curl_formadd(statusupdate_form, CURLFORM_COPYNAME, "version[sourcemod]", CURLFORM_COPYCONTENTS, sourcemodVersion, CURLFORM_END);
-  curl_formadd(statusupdate_form, CURLFORM_COPYNAME, "version[metamod]", CURLFORM_COPYCONTENTS, metamodVersion, CURLFORM_END);
+
+  new HTTPRequestHandle:request = Steam_CreateHTTPRequest(HTTPMethod_POST, MDB_URL_STATUS);
+  Steam_SetHTTPRequestGetOrPostParameter(request, "api_key", apikey);
+  Steam_SetHTTPRequestGetOrPostParameter(request, "server_id", serverid);
+  Steam_SetHTTPRequestGetOrPostParameter(request, "map", currentMap);
+  Steam_SetHTTPRequestGetOrPostParameter(request, "version[mitchdb]", MDBVERSION);
+  Steam_SetHTTPRequestGetOrPostParameter(request, "version[sourcemod]", sourcemodVersion);
+  Steam_SetHTTPRequestGetOrPostParameter(request, "version[metamod]", metamodVersion);
 
   decl String:steamid[STEAMID_SIZE];
 
@@ -119,29 +104,29 @@ stock SendStatusUpdate() {
       
       // Player Name
       Format(fieldName, sizeof(fieldName), "player[%d][name]", formindex);
-      curl_formadd(statusupdate_form, CURLFORM_COPYNAME, fieldName, CURLFORM_COPYCONTENTS, playerName, CURLFORM_END);
+      Steam_SetHTTPRequestGetOrPostParameter(request, fieldName, playerName);
 
       // IP address
       Format(fieldName, sizeof(fieldName), "player[%d][ip]", formindex);
-      curl_formadd(statusupdate_form, CURLFORM_COPYNAME, fieldName, CURLFORM_COPYCONTENTS, playerIP, CURLFORM_END);
+      Steam_SetHTTPRequestGetOrPostParameter(request, fieldName, playerIP);
 
       // steamid
       Format(fieldName, sizeof(fieldName), "player[%d][steamid]", formindex);
-      curl_formadd(statusupdate_form, CURLFORM_COPYNAME, fieldName, CURLFORM_COPYCONTENTS, steamid, CURLFORM_END);
+      Steam_SetHTTPRequestGetOrPostParameter(request, fieldName, steamid);
 
       // client time
       Format(fieldName, sizeof(fieldName), "player[%d][time]", formindex);
       if(IsClientInGame(i)) {
         Format(playerTime, sizeof(playerTime), "%f", GetClientTime(i));
-        curl_formadd(statusupdate_form, CURLFORM_COPYNAME, fieldName, CURLFORM_COPYCONTENTS, playerTime, CURLFORM_END);
+        Steam_SetHTTPRequestGetOrPostParameter(request, fieldName, playerTime);
       } else {
-        curl_formadd(statusupdate_form, CURLFORM_COPYNAME, fieldName, CURLFORM_COPYCONTENTS, "0", CURLFORM_END);
+        Steam_SetHTTPRequestGetOrPostParameter(request, fieldName, "0");
       }
       
       // userid?
       Format(fieldName, sizeof(fieldName), "player[%d][userid]", formindex);
       Format(playerUserid, sizeof(playerUserid), "%d", GetClientUserId(i));
-      curl_formadd(statusupdate_form, CURLFORM_COPYNAME, fieldName, CURLFORM_COPYCONTENTS, playerUserid, CURLFORM_END);
+      Steam_SetHTTPRequestGetOrPostParameter(request, fieldName, playerUserid);
 
       formindex++;
     }
@@ -150,43 +135,27 @@ stock SendStatusUpdate() {
   decl String:playerCounts[8]; // "current/max"
   Format(playerCounts, sizeof(playerCounts), "%d/%d", formindex, GetMaxClients());
 
-  curl_formadd(statusupdate_form, CURLFORM_COPYNAME, "players", CURLFORM_COPYCONTENTS, playerCounts, CURLFORM_END);
+  Steam_SetHTTPRequestGetOrPostParameter(request, "players", playerCounts);
 
-  curl_easy_setopt_string(curl, CURLOPT_URL, MDB_URL_STATUS);
-  curl_easy_setopt_handle(curl, CURLOPT_HTTPPOST, statusupdate_form);
-
-  // NOTE: This MUST be threaded. If you do not thread this, then the server will lag completely until the request completes
-  curl_easy_perform_thread(curl, StatusUpdateCompleted, statusupdate_form);
+  Steam_SendHTTPRequest(request, StatusUpdateCompleted);
 }
 
 // Status update completion
-public StatusUpdateCompleted(Handle:hndl, CURLcode: code, any:statusupdate_form) {
+public StatusUpdateCompleted(HTTPRequestHandle:request, bool:successful, HTTPStatusCode:code) {
   statusupdate_running = false;
+  Steam_ReleaseHTTPRequest(request);
   //already_running_count = 0;
 
   if(mdb_verbose) {
     LogToGame("[MitchDB] Status update completed...");
   }
 
-  CloseHandle(statusupdate_form);
-
-  #if USE_PROFILER
-    StopProfiling(statusupdate_profiler);
-    LogToGame("MITCHDB PROFILE: StatusUpdate: %f sec", GetProfilerTime(statusupdate_profiler));
-    //CloseHandle(statusupdate_profiler);
-  #endif
-
-  if(code != CURLE_OK) {
-    CurlFailure("status update", code);
-    CloseHandle(hndl);
+  if(successful!=true) {
+    LogToGame("[MitchDB] ERROR: Network error contacting API. [httpcode=%d] (status update)", code);
     return;
   }
 
-  new responseCode;
-  curl_easy_getinfo_int(hndl, CURLINFO_RESPONSE_CODE, responseCode);
-  CloseHandle(hndl);
-
-  if(responseCode != 200) {
-    LogToGame("[MitchDB] ERROR: There was a problem submitting the status update. (Server returned HTTP %d)", responseCode);
+  if(code != HTTPStatusCode_OK) {
+    LogToGame("[MitchDB] ERROR: There was a problem submitting the status update. (Server returned HTTP %d)", code);
   }
 }

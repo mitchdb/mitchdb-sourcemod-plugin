@@ -2,6 +2,7 @@
 #include <sourcemod>
 #include <regex>
 #include <cURL>
+#include <steamtools>
 
 #define USE_THREAD    1
 #define USE_PROFILER    0
@@ -10,7 +11,7 @@
   #include <profiler>
 #endif
 
-#define MDBVERSION "2.0.1-dev"
+#define MDBVERSION "2.0.2-dev"
 
 // Some default values for various things
 #define MDB_BANLIST_DELAY 30.0
